@@ -35,7 +35,7 @@ define({
             tags: "Tags", // Appears in web-map list description panel when it is set to true
             numViews: "Number of views", // Appears in web-map list description panel when it is set to true
             avgRating: "Rating", // Appears in web-map list description panel when it is set to true
-            noWebMapInGroup: "Configured group is invalid or no items have been shared with this group yet", // Appears when invalid group in configured or no web-map is available in that group
+            noWebMapInGroup: "Oops! Looks like you need to sign in! Please use the sign in button in the top right corner.", // Appears when invalid group in configured or no web-map is available in that group
             infoBtnToolTip: "Map information", // Display tool-tip on command button to display description of web-map
             openWebmapList: "Open panel", //tooltip for toggle button
             closeWebmapList: "Close panel" //tooltip for toggle button
