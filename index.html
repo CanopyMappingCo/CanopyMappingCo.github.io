@@ -6,9 +6,7 @@
       name="viewport"
       content="initial-scale=1,maximum-scale=1,user-scalable=no"
     />
-    <title>
-      Dunnville Trick or Treat
-    </title>
+    <title>Dunnville Trick or Treat</title>
 
     <link
       rel="stylesheet"
@@ -59,7 +57,18 @@
         "esri/layers/FeatureLayer",
         "esri/form/FormTemplate",
         "esri/widgets/Legend",
-      ], function (Map, MapView, FeatureForm, FeatureLayer, FormTemplate, Legend) {
+        "esri/widgets/Locate",
+        "esri/widgets/Expand"
+      ], function (
+        Map,
+        MapView,
+        FeatureForm,
+        FeatureLayer,
+        FormTemplate,
+        Legend,
+        Locate,
+        Expand
+      ) {
         let highlight, editFeature;
         const featureLayer = new FeatureLayer({
           portalItem: {
@@ -69,7 +78,8 @@
           formTemplate: {
             // Autocasts to new FormTemplate
             title: "Halloween Status",
-            description: "Provide information on if you are participating in Halloween Trick or Treating",
+            description:
+              "Provide information on if you are participating in Halloween Trick or Treating",
             elements: [
               {
                 // Autocasts to new GroupElement
@@ -81,26 +91,26 @@
                     // Autocasts to new FieldElement
                     type: "field",
                     fieldName: "Halloween",
-                    label: "Participating in allowing Door to Door Trick or Treaters?"
+                    label:
+                      "Participating in allowing Door to Door Trick or Treaters?"
                   },
                   {
                     type: "field",
                     fieldName: "Seperation",
                     label: "Physical Distancing In Place?"
                   },
-                                    {
+                  {
                     type: "field",
                     fieldName: "FaceCoverings",
                     label: "Face Coverings In Place?"
                   },
-                                    {
+                  {
                     type: "field",
                     fieldName: "Sanitization",
                     label: "Sanitization In Place?"
                   }
                 ]
               } // end of first group element
-             
             ],
             expressionInfos: [
               {
@@ -125,7 +135,37 @@
             autoOpenEnabled: false
           }
         });
+
+        var legend = new Expand({
+          content: new Legend({
+            view: view,
+            style: "card" // other styles include 'classic'
+          }),
+          view: view,
+          expanded: true
+        });
+        view.ui.add(legend, "bottom-left");
+
+        var locate = new Locate({
+          view: view,
+          useHeadingEnabled: false,
+          goToOverride: function (view, options) {
+            options.target.scale = 12000; // Override the default map scale
+            return view.goTo(options.target);
+          }
+        });
+
+        view.ui.add(locate, "top-left");
         
+        const instructionsExpand = new Expand({
+          expandIconClass: "esri-icon-question",
+          expandTooltip: "Trick or Treat Instructions",
+          view: view,
+          expanded: true,
+          content:
+            "<div style='width:200px; padding:10px; background-color:white'><strong>Dunnville Trick or Treat Participation</strong><br><br><b>Click</b> the Point on the Map where you Live <br><br><b>Edit</b> your Trick or Treat Status to <i>Yes</i> or <i>No</i> and answer the COVID-19 Questions<br><br>Click <b>Update Trick or Treat Status</b><br><br>Refresh the webpage to see your updated information!<br><br><i>All Data will be deleted November 1, 2020</i></div>"
+        });
+        view.ui.add(instructionsExpand, "top-left");
 
         // Add a new feature form with grouped fields
         const form = new FeatureForm({
@@ -192,7 +232,6 @@
                     .getElementById("update")
                     .classList.contains("esri-hidden")
                 ) {
-
                   document
                     .getElementById("update")
                     .classList.remove("esri-hidden");
@@ -256,24 +295,23 @@
         view.ui.add("logoDiv", "bottom-right");
         view.ui.add("info", {
           position: "top-left",
-          index: 1
+          index: 3
         });
       });
-
     </script>
-
   </head>
 
   <body>
     <div id="viewDiv"></div>
     <div id="info" class="esri-widget">
       <h3 class="list-heading">Dunnville Trick or Treat Participation</h3>
-        <ul style="font-size: 13px; padding-left: 1.5em">
-          <li>Click the Point on the Map where you Live</li>
-          <li>Edit your Trick or Treat Status to Yes or No</li>
-          <li>Click <i>Update Trick or Treat Status</i></li>
-          <li>Refresh the webpage to see your updated information!</li>
-        </ul>
+      <ul style="font-size: 13px; padding-left: 1.5em">
+        <li>Click the Point on the Map where you Live</li>
+        <li>Edit your Trick or Treat Status to Yes or No</li>
+        <li>Click <i>Update Trick or Treat Status</i></li>
+        <li>Refresh the webpage to see your updated information!</li>
+      </ul>
+      <h5>All Data will be deleted November 1, 2020</h5>
     </div>
 
     <div id="update" class="esri-widget esri-hidden">
@@ -284,9 +322,6 @@
         value="Update Trick or Treat Status"
         id="btnUpdate"
       />
-       <div id="logoDiv" class="esri-widget">  
-       <img src="https://raw.githubusercontent.com/CanopyMappingCo/Logo/master/Covid.PNG" width=100% height=100%></div>
-
     </div>
   </body>
 </html>
