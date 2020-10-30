@@ -6,64 +6,287 @@
       name="viewport"
       content="initial-scale=1,maximum-scale=1,user-scalable=no"
     />
-    <title>MetroLoop Field Customer Intake + Update</title>
+    <title>
+      Dunnville Trick or Treat
+    </title>
 
     <link
       rel="stylesheet"
-      href="https://js.arcgis.com/4.12/esri/themes/light/main.css"
+      href="https://js.arcgis.com/4.17/esri/themes/light/main.css"
     />
-    <script src="https://js.arcgis.com/4.12/"></script>
+    <script src="https://js.arcgis.com/4.17/"></script>
 
     <style>
       html,
       body,
       #viewDiv {
-        padding: 0;
-        margin: 0;
         height: 100%;
+        width: 100%;
+        margin: 0;
+        padding: 0;
+      }
+
+      #info {
+        padding: 14px;
+        border-radius: 5px;
+        width: 50%;
+      }
+
+      #update {
+        padding: 6px;
+      }
+
+      #form {
+        background: #fff;
+      }
+      #logoDiv {
+        padding: 10px;
+        background-color: #fff;
         width: 100%;
       }
 
-      .esri-editor .esri-item-list__scroller {
-        max-height: 350px;
+      /* replaces esri-widget--panel */
+      .scroller {
+        overflow-x: hidden;
+        overflow-y: auto;
       }
     </style>
-
     <script>
       require([
-        "esri/WebMap",
+        "esri/Map",
         "esri/views/MapView",
-        "esri/widgets/Editor"
-      ], function(WebMap, MapView, Editor) {
-        // Create a map frm the referenced webmap item id
-        let webmap = new WebMap({
+        "esri/widgets/FeatureForm",
+        "esri/layers/FeatureLayer",
+        "esri/form/FormTemplate",
+        "esri/widgets/Legend",
+      ], function (Map, MapView, FeatureForm, FeatureLayer, FormTemplate, Legend) {
+        let highlight, editFeature;
+        const featureLayer = new FeatureLayer({
           portalItem: {
-            id: "92d202bc5915436097b7b9d377fa5413"
-          }
+            id: "46813c80abc94ce1a4a3cd7393a9a410"
+          },
+          outFields: ["*"],
+          formTemplate: {
+            // Autocasts to new FormTemplate
+            title: "Halloween Status",
+            description: "Provide information on if you are participating in Halloween Trick or Treating",
+            elements: [
+              {
+                // Autocasts to new GroupElement
+                type: "group",
+                label: "Trick or Treat Status",
+                description: "Trick or Treat Information Update",
+                elements: [
+                  {
+                    // Autocasts to new FieldElement
+                    type: "field",
+                    fieldName: "Halloween",
+                    label: "Participating in allowing Door to Door Trick or Treaters?"
+                  },
+                  {
+                    type: "field",
+                    fieldName: "Seperation",
+                    label: "Physical Distancing In Place?"
+                  },
+                                    {
+                    type: "field",
+                    fieldName: "FaceCoverings",
+                    label: "Face Coverings In Place?"
+                  },
+                                    {
+                    type: "field",
+                    fieldName: "Sanitization",
+                    label: "Sanitization In Place?"
+                  }
+                ]
+              } // end of first group element
+             
+            ],
+            expressionInfos: [
+              {
+                name: "alwaysHidden",
+                expression: "1 == 0"
+              }
+            ]
+          } // end of form template elements
+        });
+
+        const map = new Map({
+          basemap: "topo-vector",
+          layers: [featureLayer]
         });
 
         let view = new MapView({
+          map: map,
           container: "viewDiv",
-          map: webmap
+          center: [-79.618181, 42.909219],
+          zoom: 15,
+          popup: {
+            autoOpenEnabled: false
+          }
+        });
+        
+
+        // Add a new feature form with grouped fields
+        const form = new FeatureForm({
+          container: "form",
+          groupDisplay: "sequential", // only display one group at a time
+          layer: featureLayer
         });
 
-        view.when(function() {
-          view.popup.autoOpenEnabled = false; //disable popups
-
-          // Create the Editor
-          let editor = new Editor({
-            view: view
+        view.on("click", function (event) {
+          // Unselect any currently selected features
+          unselectFeature();
+          // Listen for when the user clicks on the view
+          view.hitTest(event).then(function (response) {
+            // If user selects a feature, select it
+            const results = response.results;
+            if (
+              results.length > 0 &&
+              results[0].graphic &&
+              results[0].graphic.layer === featureLayer
+            ) {
+              selectFeature(
+                results[0].graphic.attributes[featureLayer.objectIdField]
+              );
+            } else {
+              // Hide the form and show the info div
+              document.getElementById("update").classList.add("esri-hidden");
+            }
           });
+        });
 
-          // Add widget to top-right of the view
-          view.ui.add(editor, "top-right");
+        // Function to unselect features
+        function unselectFeature() {
+          if (highlight) {
+            highlight.remove();
+          }
+        }
+
+        // Highlight the clicked feature and display
+        // its attributes in the featureform.
+        function selectFeature(objectId) {
+          // query feature from the server
+          featureLayer
+            .queryFeatures({
+              objectIds: [objectId],
+              outFields: ["*"],
+              returnGeometry: true
+            })
+            .then(function (results) {
+              if (results.features.length > 0) {
+                editFeature = results.features[0];
+
+                // display the attributes of selected feature in the form
+                form.feature = editFeature;
+
+                // highlight the feature on the view
+                view
+                  .whenLayerView(editFeature.layer)
+                  .then(function (layerView) {
+                    highlight = layerView.highlight(editFeature);
+                  });
+
+                if (
+                  document
+                    .getElementById("update")
+                    .classList.contains("esri-hidden")
+                ) {
+
+                  document
+                    .getElementById("update")
+                    .classList.remove("esri-hidden");
+                }
+              }
+            });
+        }
+
+        // Listen to the feature form's submit event.
+        form.on("submit", function () {
+          if (editFeature) {
+            // Grab updated attributes from the form.
+            const updated = form.getValues();
+
+            // Loop through updated attributes and assign
+            // the updated values to feature attributes.
+            Object.keys(updated).forEach(function (name) {
+              editFeature.attributes[name] = updated[name];
+            });
+
+            // Setup the applyEdits parameter with updates.
+            const edits = {
+              updateFeatures: [editFeature]
+            };
+            applyAttributeUpdates(edits);
+          }
+        });
+
+        // Call FeatureLayer.applyEdits() with specified params.
+        function applyAttributeUpdates(params) {
+          document.getElementById("btnUpdate").style.cursor = "progress";
+          featureLayer
+            .applyEdits(params)
+            .then(function (editsResult) {
+              // Get the objectId of the newly added feature.
+              // Call selectFeature function to highlight the new feature.
+              if (editsResult.addFeatureResults.length > 0) {
+                const objectId = editsResult.addFeatureResults[0].objectId;
+                selectFeature(objectId);
+              }
+              document.getElementById("btnUpdate").style.cursor = "pointer";
+            })
+            .catch(function (error) {
+              console.log("===============================================");
+              console.error(
+                "[ applyEdits ] FAILURE: ",
+                error.code,
+                error.name,
+                error.message
+              );
+              console.log("error = ", error);
+              document.getElementById("btnUpdate").style.cursor = "pointer";
+            });
+        }
+
+        document.getElementById("btnUpdate").onclick = function () {
+          // Fires feature form's submit event.
+          form.submit();
+        };
+        view.ui.add("update", "top-right");
+        view.ui.add("logoDiv", "bottom-right");
+        view.ui.add("info", {
+          position: "top-left",
+          index: 1
         });
       });
+
     </script>
+
   </head>
 
   <body>
     <div id="viewDiv"></div>
-    <div id="editorDiv"></div>
+    <div id="info" class="esri-widget">
+      <h3 class="list-heading">Dunnville Trick or Treat Participation</h3>
+        <ul style="font-size: 13px; padding-left: 1.5em">
+          <li>Click the Point on the Map where you Live</li>
+          <li>Edit your Trick or Treat Status to Yes or No</li>
+          <li>Click <i>Update Trick or Treat Status</i></li>
+          <li>Refresh the webpage to see your updated information!</li>
+        </ul>
+    </div>
+
+    <div id="update" class="esri-widget esri-hidden">
+      <div id="form" class="scroller esri-component"></div>
+      <input
+        type="button"
+        class="esri-button"
+        value="Update Trick or Treat Status"
+        id="btnUpdate"
+      />
+       <div id="logoDiv" class="esri-widget">  
+       <img src="https://raw.githubusercontent.com/CanopyMappingCo/Logo/master/Covid.PNG" width=100% height=100%></div>
+
+    </div>
   </body>
 </html>
