@@ -52,11 +52,12 @@
     <link rel="stylesheet" href="https://js.arcgis.com/4.18/esri/themes/light/main.css" />
     <script src="https://js.arcgis.com/4.18/"></script>
     <script>
-      require(["esri/WebMap", "esri/views/MapView", "esri/widgets/Legend", "esri/widgets/Expand"], function(
+      require(["esri/WebMap", "esri/views/MapView", "esri/widgets/Legend", "esri/widgets/Expand", "esri/widgets/Locate"], function(
         WebMap,
         MapView,
         Legend,
-        Expand
+        Expand,
+        Locate
       ) {
         var webmap = new WebMap({
           portalItem: {
@@ -133,7 +134,16 @@
             };
           }
         }
+        
+var locateBtn = new Locate({
+          view: view
+        });
 
+        // Add the locate widget to the top left corner of the view
+        view.ui.add(locateBtn, {
+          position: "top-left"
+        });
+        
         function setLegendMobile(isMobile) {
           var toAdd = isMobile ? expandLegend : legend;
           var toRemove = isMobile ? legend : expandLegend;
