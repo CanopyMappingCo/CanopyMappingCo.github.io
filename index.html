@@ -3,7 +3,7 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="initial-scale=1,maximum-scale=1,user-scalable=no" />
-    <title>Load a basic WebMap | Sample | ArcGIS API for JavaScript 4.18</title>
+    <title>Rituul</title>
 
     <style>
       html,
@@ -16,33 +16,29 @@
       }
     </style>
 
-    <link rel="stylesheet" href="https://js.arcgis.com/4.18/esri/themes/light/main.css" />
+    <link rel="stylesheet" href="https://js.arcgis.com/4.19/esri/themes/light/main.css" />
 
-    <script src="https://js.arcgis.com/4.18/"></script>
+    <script src="https://js.arcgis.com/4.19/"></script>
 
     <script>
-      require(["esri/views/MapView", "esri/WebMap"], function(MapView, WebMap) {
-        /************************************************************
-         * Creates a new WebMap instance. A WebMap must reference
-         * a PortalItem ID that represents a WebMap saved to
-         * arcgis.com or an on-premise portal.
-         *
-         * To load a WebMap from an on-premise portal, set the portal
-         * url with esriConfig.portalUrl.
-         ************************************************************/
+      require(["esri/views/MapView", "esri/WebMap","esri/widgets/Search"], function(MapView, WebMap, Search) {
+
         var webmap = new WebMap({
           portalItem: {
-            // autocasts as new PortalItem()
             id: "9a39cf5d2da94847bd9c4b2bb272b31c"
           }
         });
 
-        /************************************************************
-         * Set the WebMap instance to the map property in a MapView.
-         ************************************************************/
         var view = new MapView({
           map: webmap,
           container: "viewDiv"
+        });
+        
+        var searchWidget = new Search({
+          view: view
+        });
+        view.ui.add(searchWidget, {
+          position: "top-right"
         });
       });
     </script>
