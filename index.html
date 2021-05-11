@@ -21,7 +21,7 @@
     <script src="https://js.arcgis.com/4.19/"></script>
 
     <script>
-      require(["esri/views/MapView", "esri/WebMap","esri/widgets/Search"], function(MapView, WebMap, Search) {
+      require(["esri/views/MapView", "esri/WebMap","esri/widgets/Search", "esri/widgets/Locate"], function(MapView, WebMap, Search, Locate) {
 
         var webmap = new WebMap({
           portalItem: {
@@ -39,6 +39,15 @@
         });
         view.ui.add(searchWidget, {
           position: "top-right"
+        });
+        
+        var locateBtn = new Locate({
+          view: view
+        });
+
+        // Add the locate widget to the top left corner of the view
+        view.ui.add(locateBtn, {
+          position: "top-left"
         });
       });
     </script>
