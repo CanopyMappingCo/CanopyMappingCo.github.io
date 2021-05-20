@@ -21,7 +21,7 @@
     <script src="https://js.arcgis.com/4.19/"></script>
 
     <script>
-      require(["esri/views/MapView", "esri/WebMap","esri/widgets/Search", "esri/widgets/Locate"], function(MapView, WebMap, Search, Locate) {
+      require(["esri/views/MapView", "esri/layers/FeatureLayer", "esri/WebMap","esri/widgets/Search", "esri/widgets/Locate","esri/tasks/Locator", ], function(MapView, FeatureLayer, WebMap, Search, Locate, Locator) {
 
         var webmap = new WebMap({
           portalItem: {
@@ -34,9 +34,45 @@
           container: "viewDiv"
         });
         
-        var searchWidget = new Search({
-          view: view
+        const featureLayerDistricts = new FeatureLayer({
+          url:
+            "https://services7.arcgis.com/Mp4tUzknVOs3IOZb/ArcGIS/rest/services/OnlineLocationData/FeatureServer/0",
+          popupTemplate: {
+            // autocasts as new PopupTemplate()
+            title: "Name {Name}",
+            overwriteActions: true
+          }
         });
+        
+                const searchWidget = new Search({
+          view: view,
+          allPlaceholder: "Cannabis Store",
+          includeDefaultSources: false,
+          sources: [
+            {
+              layer: featureLayerDistricts,
+              searchFields: ["Name"],
+              displayField: "Name",
+              exactMatch: false,
+              outFields: ["Name"],
+              name: "Name",
+              placeholder: "example: Cannabis"
+            },
+            {
+              name: "ArcGIS World Geocoding Service",
+              placeholder: "example: Nuuk, GRL",
+              apiKey:
+                "AAPKd6517aa887304b5891f6b959ea426015CLWBA2qIMPI4-vgwnS0B8RGRBVMArpJu0IN2BUL-G6GZ_aa8NF-r_JvSnsWp_A2M",
+              singleLineFieldName: "SingleLine",
+              locator: new Locator({
+                url:
+                  "https://geocode-api.arcgis.com/arcgis/rest/services/World/GeocodeServer"
+              })
+            }
+          ]
+        });
+
+        // Add the search widget to the top left corner of the view
         view.ui.add(searchWidget, {
           position: "top-right"
         });
